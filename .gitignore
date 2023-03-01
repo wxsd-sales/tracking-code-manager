@@ -1,0 +1,6 @@
+*.pyc
+*.env
+*.txt
+*.log
+update_tracking_codes.py
+*.csv
