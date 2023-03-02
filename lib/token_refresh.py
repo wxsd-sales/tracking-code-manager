@@ -4,7 +4,7 @@ import traceback
 import tornado.gen
 import tornado.web
 
-from tornado.httpclient import AsyncHTTPClient, HTTPRequest
+from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPError
 
 from lib.settings import Settings
 
@@ -37,6 +37,12 @@ class TokenRefresher(object):
             resp = json.loads(response.body.decode("utf-8"))
             print("TokenRefresher.refresh_token /access_token Response: {0}".format(resp))
             ret_val = resp["access_token"]
+        except HTTPError as he:
+            print("TokenRefresher.refresh_token HTTPError:{0}".format(he))
+            print(dir(he))
+            print(he.code)
+            print(he.response.body)
+            traceback.print_exc()
         except Exception as e:
             print("TokenRefresher.refresh_token Exception:{0}".format(e))
             traceback.print_exc()

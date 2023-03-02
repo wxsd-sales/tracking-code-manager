@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from tornado.options import define, options, parse_command_line
 from tornado.httpclient import HTTPError
 
+from lib.oauth import WebexOAuthHandler
 from lib.settings import Settings
 from lib.spark import Spark
 from lib.token_refresh import TokenRefresher
@@ -151,8 +152,6 @@ class TaskManager(object):
                                 resp = yield spark.get_with_retries_v2("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes?personId={0}".format(id))
                                 print("**{0}** siteUrl:{1}, trackingCodes:".format(email, resp.body.get("siteUrl")))
                                 oldTrackingCodes = resp.body.get("trackingCodes", [])
-                                print(oldTrackingCodes)
-                                print(len(oldTrackingCodes))
                                 
                                 saveTrackingCodes = []
                                 for trackingCode in oldTrackingCodes:
@@ -234,13 +233,35 @@ class TaskManager(object):
             print("TaskManager.run_loop - done. Sleeping for {0} seconds.".format(next_run_seconds))
             yield tornado.gen.sleep(next_run_seconds)
 
+class AuthFailedHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        try:
+            print("AuthFailedHandler GET")
+            self.render("auth-failed.html")
+        except Exception as e:
+            traceback.print_exc()
+
+class MainHandler(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        try:
+            print("MainHandler GET")
+            self.render("index.html")
+        except Exception as e:
+            traceback.print_exc()
+
 
 @tornado.gen.coroutine
 def main():
     try:
         parse_command_line()
         app = tornado.web.Application([
-                #(r"/", MainHandler),
+                (r"/success", MainHandler),
+                (r"/reset", WebexOAuthHandler),
+                (r"/authentication-failed", AuthFailedHandler),
               ],
             template_path=os.path.join(os.path.dirname(__file__), "html_templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),

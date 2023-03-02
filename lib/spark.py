@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 #import asyncio
-import base64, json, requests
+import base64, json#, requests
 import hashlib
 import hmac
 import io
@@ -29,7 +29,7 @@ import tornado.gen
 import time
 
 from tornado.httpclient import AsyncHTTPClient, HTTPClient, HTTPRequest, HTTPError
-from requests_toolbelt import MultipartEncoder
+#from requests_toolbelt import MultipartEncoder
 
 class Result(object):
     def __init__(self, result, as_file=False):
@@ -159,10 +159,13 @@ class Spark(object):
             except Exception as te:
                 self.printf("No TrackingId.")
             try:
+                msg = ""
                 try:
                     msg = json.loads(e.response.body.decode('utf8'))
                 except Exception as ex:
                     msg = e.response.body.decode('utf8')
+                if msg:
+                    self.printf(msg)
             except Exception as exx:
                 pass#probably a 599 timeout
             #self.printf("New msg: {0}".format(msg))
@@ -348,6 +351,7 @@ class Spark(object):
                 raise HTTPError(e.code, response=e.response) from e
         raise tornado.gen.Return(result)
 
+    """
     def upload(self, roomId, name, path, filetype, markdown='', personId=None):
         jmsg = {}
         try:
@@ -439,3 +443,4 @@ class Spark(object):
         except Exception as e:
             self.printf("UPLOAD file error {0}".format(e))
             queue.put(e)
+    """

@@ -13,3 +13,5 @@ class Settings(object):
 	refresh_token = os.environ.get("MY_WEBEX_REFRESH_TOKEN")
 	client_id = os.environ.get("MY_WEBEX_CLIENT_ID")
 	client_secret = os.environ.get("MY_WEBEX_SECRET")
+	scopes = os.environ.get("MY_WEBEX_SCOPES")
+	redirect_uri = os.environ.get("MY_WEBEX_REDIRECT_URI")
