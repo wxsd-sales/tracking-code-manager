@@ -2,9 +2,10 @@
 Update User Tracking Codes Automatically
 
 ## Requirements
-python:3.8.1
+python >= v3.8.1
 
-pip install python-dotenv
+**Python Modules**  
+pip install python-dotenv  
 pip install tornado==4.5.2
 
 ### .env
