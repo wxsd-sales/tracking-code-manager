@@ -132,11 +132,11 @@ class TaskManager(object):
     @tornado.gen.coroutine
     def update_people(self, access_token, domain_map, department_names):
         try:
-            url = "https://webexapis.com/v1/people?max=5"
+            url = "https://webexapis.com/v1/people?max=100"
             spark = Spark(access_token)
             counter = 0
             while url != None:
-                print('get people url:{0}'.format(url))
+                #print('get people url:{0}'.format(url))
                 people_resp = yield spark.get_with_retries_v2(url)
                 items = people_resp.body.get('items')
                 counter += len(items)
@@ -146,13 +146,14 @@ class TaskManager(object):
                         email = person.get("emails")[0]
                         id = person.get("id")
                         username, domain = email.split("@")
+                        print("domain {0}, user: {1}".format(domain, email))
                         if domain in domain_map:
                             try:
                                 user_deparment_index =  domain_map[domain]
                                 resp = yield spark.get_with_retries_v2("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes?personId={0}".format(id))
-                                print("**{0}** siteUrl:{1}, trackingCodes:".format(email, resp.body.get("siteUrl")))
                                 oldTrackingCodes = resp.body.get("trackingCodes", [])
-                                
+                                print("siteUrl:{0}, old trackingCodes:{1}".format(resp.body.get("siteUrl"), oldTrackingCodes))
+
                                 saveTrackingCodes = []
                                 for trackingCode in oldTrackingCodes:
                                     if trackingCode["name"] not in [self.billing_index_name, self.department_index_name] :
@@ -166,7 +167,7 @@ class TaskManager(object):
                                     "value": department_names[user_deparment_index]
                                 }]
                                 newTrackingCodes += saveTrackingCodes
-                                
+                                print("new trackingCodes:{0}".format(newTrackingCodes))
                                 data = {
                                     "siteUrl": Settings.site_url,
                                     "personId": id,
@@ -174,19 +175,16 @@ class TaskManager(object):
                                 }
                                 resp = yield spark.post_with_retries("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes", data, method="PUT")
                             except HTTPError as he:
-                                print("**{0}** Error:".format(email))
                                 print(he.response)
                         else:
                             print("domain {0} not in code_map, skipping tracking code update for this user: {1}".format(domain, email))
-                        
-                        print("domain {0}, user: {1}".format(domain, email))
                     except Exception as ex:
                         traceback.print_exc()
                 url = people_resp.headers.get("Link")
                 if url:
                     parts = url.split(">")
                     url = parts[0][1:]
-                    print(url)
+                    print("next people url:{}".format(url))
         except Exception as e:
             traceback.print_exc()
         #raise tornado.gen.Return()

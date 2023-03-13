@@ -129,6 +129,8 @@ class Spark(object):
                         if retry_after == None:
                             retry_after = 30
                     else:
+                        if e.code in [502, 599]:
+                            retries = 0
                         retry_after = 10
                     msg = "{0} hit, waiting for {1} seconds and then retrying...".format(e.code, retry_after)
                     self.printf(msg)
