@@ -56,7 +56,8 @@ class WebexOAuthHandler(tornado.web.RequestHandler):
     def get(self):
         response = "Error"
         try:
-            if("192.168" not in self.request.full_url()): #this prevents the heartbeat checks from getting pushed through the login the process.
+            if("192.168" not in self.request.full_url()): #this [used to] prevent the heartbeat checks from getting pushed through the login the process.
+                #Note: now that login is /reset and not / the above conditional isn't really relevant 
                 print('Webex OAuth: {0}'.format(self.request.full_url()))
                 if self.get_argument("code", None):
                     code = self.get_argument("code")
