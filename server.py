@@ -149,31 +149,41 @@ class TaskManager(object):
                         print("domain {0}, user: {1}".format(domain, email))
                         if domain in domain_map:
                             try:
-                                user_deparment_index =  domain_map[domain]
+                                user_department_index =  domain_map[domain]
                                 resp = yield spark.get_with_retries_v2("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes?personId={0}".format(id))
                                 oldTrackingCodes = resp.body.get("trackingCodes", [])
                                 print("siteUrl:{0}, old trackingCodes:{1}".format(resp.body.get("siteUrl"), oldTrackingCodes))
+                                
+                                billing_code_value = "{0}-{1}".format(domain, user_department_index)
+                                department_code_value = department_names[user_department_index]
 
                                 saveTrackingCodes = []
+                                existing_codes = 0
                                 for trackingCode in oldTrackingCodes:
                                     if trackingCode["name"] not in [self.billing_index_name, self.department_index_name] :
                                         saveTrackingCodes.append(trackingCode)
-
-                                newTrackingCodes = [{
-                                    "name":self.billing_index_name,
-                                    "value": "{0}-{1}".format(domain, user_deparment_index)
-                                },{
-                                    "name":self.department_index_name,
-                                    "value": department_names[user_deparment_index]
-                                }]
-                                newTrackingCodes += saveTrackingCodes
-                                print("new trackingCodes:{0}".format(newTrackingCodes))
-                                data = {
-                                    "siteUrl": Settings.site_url,
-                                    "personId": id,
-                                    "trackingCodes": newTrackingCodes
-                                }
-                                resp = yield spark.post_with_retries("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes", data, method="PUT")
+                                    elif trackingCode["name"] == self.billing_index_name and trackingCode["value"] == billing_code_value:
+                                        existing_codes += 1
+                                    elif trackingCode["name"] == self.department_index_name and trackingCode["value"] == department_code_value:
+                                        existing_codes += 1
+                                if existing_codes < 2:
+                                    newTrackingCodes = [{
+                                        "name":self.billing_index_name,
+                                        "value": billing_code_value
+                                    },{
+                                        "name":self.department_index_name,
+                                        "value": department_code_value
+                                    }]
+                                    newTrackingCodes += saveTrackingCodes
+                                    print("new trackingCodes:{0}".format(newTrackingCodes))
+                                    data = {
+                                        "siteUrl": Settings.site_url,
+                                        "personId": id,
+                                        "trackingCodes": newTrackingCodes
+                                    }
+                                    resp = yield spark.post_with_retries("https://webexapis.com/v1/admin/meeting/userconfig/trackingCodes", data, method="PUT")
+                                else:
+                                    print("User already has latest tracking codes.")
                             except HTTPError as he:
                                 print(he.response)
                         else:
