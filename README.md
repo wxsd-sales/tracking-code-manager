@@ -7,8 +7,10 @@ Update User Tracking Codes Automatically.  Tracking Codes can be used to track u
 python >= v3.8.1
 
 **Python Modules**  
+```
 pip install python-dotenv  
 pip install tornado==4.5.2
+```
 
 ### .env
 You will need an environment variables file (.env) with the following declarations:
